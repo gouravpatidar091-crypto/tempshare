@@ -12,8 +12,8 @@ const router = express.Router();
 
 // ── Supabase client ───────────────────────────────────────────
 const supabase = createClient(
-  process.env.https://fofsepdedipfmofabbpe.supabase.co,
-  process.env.sb_publishable_6fKg6quDB7BIFrDnGUdijg_CepgGU7t
+  const supabaseUrl = process.env.https://fofsepdedipfmofabbpe.supabase.co,
+  const supabaseKey = process.env.sb_publishable_6fKg6quDB7BIFrDnGUdijg_CepgGU7t
 );
 
 const BUCKET        = process.env.SUPABASE_BUCKET || 'tempshare-files';
