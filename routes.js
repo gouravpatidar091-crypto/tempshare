@@ -1,5 +1,5 @@
 // ============================================================
-// routes.js — TempShare with Supabase Storage
+// routes.js — TempShare with Supabase Storage (Debugged)
 // ============================================================
 
 const express  = require('express');
@@ -10,10 +10,16 @@ const { createClient } = require('@supabase/supabase-js');
 
 const router = express.Router();
 
-// ── Supabase client ───────────────────────────────────────────
+// ── ⚠️ ENVIRONMENT VARIABLES CHECK ─────────────────────────────
+if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
+  console.error('❌ Missing SUPABASE_URL or SUPABASE_ANON_KEY in environment variables');
+  process.exit(1); // crash early so Render shows error
+}
+
+// ── ✅ CORRECT Supabase client ─────────────────────────────────
 const supabase = createClient(
-  const supabaseUrl = process.env.https://fofsepdedipfmofabbpe.supabase.co,
-  const supabaseKey = process.env.sb_publishable_6fKg6quDB7BIFrDnGUdijg_CepgGU7t
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
 );
 
 const BUCKET        = process.env.SUPABASE_BUCKET || 'tempshare-files';
@@ -21,7 +27,7 @@ const MAX_FILE_SIZE = parseInt(process.env.MAX_FILE_MB  || '100') * 1024 * 1024;
 const EXPIRY_HOURS  = parseInt(process.env.EXPIRY_HOURS || '24');
 const DELETE_ON_DL  = process.env.DELETE_ON_DOWNLOAD === 'true';
 
-// ── Allowed MIME types ────────────────────────────────────────
+// ── Allowed MIME types (same as before) ────────────────────────
 const ALLOWED_TYPES = new Set([
   'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
   'video/mp4', 'video/webm', 'video/ogg', 'video/quicktime',
@@ -43,7 +49,7 @@ const ALLOWED_TYPES = new Set([
 // ── In-memory metadata store ──────────────────────────────────
 const fileStore = {};
 
-// ── Multer: memory storage (buffer goes to Supabase) ─────────
+// ── Multer: memory storage ────────────────────────────────────
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: MAX_FILE_SIZE },
@@ -205,4 +211,3 @@ router.get('/api/stats', (req, res) => {
 });
 
 module.exports = { router, cleanExpiredFiles };
-    
