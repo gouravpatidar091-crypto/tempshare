@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TempShare — Share Files Instantly</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="/style.css" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            heading : ['Syne', 'sans-serif'],
+            body    : ['DM Sans', 'sans-serif'],
+          }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="font-body min-h-screen overflow-x-hidden">
+
+  <!-- ── Ambient blobs ─────────────────────────────────────── -->
+  <div class="blob blob-1" aria-hidden="true"></div>
+  <div class="blob blob-2" aria-hidden="true"></div>
+  <div class="blob blob-3" aria-hidden="true"></div>
+
+  <!-- ── Nav ───────────────────────────────────────────────── -->
+  <nav class="relative z-10 flex items-center justify-between px-6 py-5 max-w-6xl mx-auto">
+    <a href="/" class="flex items-center gap-2 group">
+      <div class="logo-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+      </div>
+      <span class="font-heading font-800 text-xl tracking-tight text-white">TempShare</span>
+    </a>
+    <div id="stats-badge" class="stats-badge hidden">
+      <span class="dot"></span>
+      <span id="stats-text">Loading…</span>
+    </div>
+  </nav>
+
+  <!-- ══════════════════════════════════════════════════════════
+       UPLOAD PAGE
+  ═══════════════════════════════════════════════════════════ -->
+  <main id="page-upload" class="page relative z-10 max-w-2xl mx-auto px-6 pt-8 pb-20">
+
+    <!-- Hero -->
+    <div class="text-center mb-10">
+      <h1 class="font-heading text-5xl sm:text-6xl font-extrabold text-white leading-tight mb-4">
+        Share files<br/><span class="gradient-text">that vanish.</span>
+      </h1>
+      <p class="text-white/60 text-lg">
+        Upload. Share. Auto-expires in 24 hours. No account needed.
+      </p>
+    </div>
+
+    <!-- Drop Zone -->
+    <div id="drop-zone" class="glass-card drop-zone" role="button" tabindex="0"
+         aria-label="Drop files here or click to browse">
+      <input type="file" id="file-input" multiple class="hidden" accept="*/*" />
+
+      <div id="drop-idle" class="drop-idle-state">
+        <div class="upload-icon-wrap mb-5">
+          <svg class="upload-icon" width="44" height="44" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="16 16 12 12 8 16"/>
+            <line x1="12" y1="12" x2="12" y2="21"/>
+            <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+          </svg>
+        </div>
+        <p class="text-white font-semibold text-lg mb-1">Drop files here</p>
+        <p class="text-white/50 text-sm mb-6">or click to browse your device</p>
+        <button id="browse-btn" class="btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/>
+            <polyline points="13 2 13 9 20 9"/>
+          </svg>
+          Browse Files
+        </button>
+        <p class="text-white/30 text-xs mt-5">Max 100 MB per file · 10 files at once</p>
+      </div>
+
+      <div id="drop-active" class="drop-active-state hidden">
+        <div class="drop-active-icon">📂</div>
+        <p class="text-white font-semibold text-lg">Release to add files</p>
+      </div>
+    </div>
+
+    <!-- File List (before upload) -->
+    <div id="file-list-section" class="hidden mt-5">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-white/80 font-medium text-sm uppercase tracking-widest">Ready to upload</h3>
+        <button id="clear-files-btn" class="text-white/40 hover:text-white/80 text-xs transition-colors">
+          Clear all
+        </button>
+      </div>
+      <ul id="file-list" class="space-y-2 mb-5"></ul>
+      <button id="upload-btn" class="btn-primary w-full text-base py-3.5">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="16 16 12 12 8 16"/>
+          <line x1="12" y1="12" x2="12" y2="21"/>
+          <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+        </svg>
+        Upload & Generate Link
+      </button>
+    </div>
+
+    <!-- Progress Section -->
+    <div id="progress-section" class="hidden mt-5 glass-card p-6">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-white font-medium">Uploading…</span>
+        <span id="progress-pct" class="text-white/60 text-sm font-mono">0%</span>
+      </div>
+      <div class="progress-track">
+        <div id="progress-bar" class="progress-fill" style="width:0%"></div>
+      </div>
+      <p id="progress-label" class="text-white/40 text-xs mt-2">Preparing…</p>
+    </div>
+
+    <!-- Result Section -->
+    <div id="result-section" class="hidden mt-5"></div>
+
+    <!-- Error Section -->
+    <div id="error-section" class="hidden mt-5 glass-card p-5 border border-red-500/30">
+      <div class="flex items-start gap-3">
+        <span class="text-red-400 text-xl">⚠️</span>
+        <div>
+          <p class="text-red-300 font-medium text-sm">Upload failed</p>
+          <p id="error-msg" class="text-red-400/70 text-sm mt-1"></p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ══════════════════════════════════════════════════════════
+       DOWNLOAD PAGE
+  ═══════════════════════════════════════════════════════════ -->
+  <main id="page-download" class="page hidden relative z-10 max-w-xl mx-auto px-6 pt-12 pb-20">
+
+    <!-- Loading state -->
+    <div id="dl-loading" class="text-center py-16">
+      <div class="spinner mx-auto mb-4"></div>
+      <p class="text-white/50">Looking up your file…</p>
+    </div>
+
+    <!-- File card -->
+    <div id="dl-card" class="hidden">
+      <div class="text-center mb-8">
+        <h1 class="font-heading text-4xl font-extrabold text-white mb-2">Ready to download</h1>
+        <p class="text-white/50">This file will self-destruct after expiry.</p>
+      </div>
+
+      <div class="glass-card p-6 mb-4">
+        <div class="flex items-center gap-4">
+          <div id="dl-icon" class="file-type-icon">📄</div>
+          <div class="flex-1 min-w-0">
+            <p id="dl-filename" class="text-white font-semibold truncate text-lg"></p>
+            <div class="flex gap-3 mt-1 text-sm text-white/50">
+              <span id="dl-size"></span>
+              <span>·</span>
+              <span id="dl-mime" class="truncate"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="divider my-5"></div>
+
+        <div class="grid grid-cols-2 gap-3 text-sm">
+          <div class="stat-pill">
+            <span class="text-white/40">Downloads</span>
+            <span id="dl-count" class="text-white font-semibold">—</span>
+          </div>
+          <div class="stat-pill">
+            <span class="text-white/40">Expires in</span>
+            <span id="dl-expiry" class="text-white font-semibold">—</span>
+          </div>
+        </div>
+      </div>
+
+      <a id="dl-btn" href="#" class="btn-primary w-full text-center py-4 text-base block">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block -mt-0.5 mr-1">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Download File
+      </a>
+
+      <p class="text-white/30 text-xs text-center mt-4">
+        Clicking download may remove the file permanently depending on server config.
+      </p>
+
+      <div class="text-center mt-8">
+        <a href="/" class="text-white/40 hover:text-white/70 text-sm transition-colors">
+          ← Share your own file
+        </a>
+      </div>
+    </div>
+
+    <!-- Not found / expired -->
+    <div id="dl-not-found" class="hidden text-center py-16">
+      <div class="text-6xl mb-4">💨</div>
+      <h2 class="font-heading text-3xl font-bold text-white mb-2">File has vanished</h2>
+      <p class="text-white/50 mb-8">This link has expired or the file was already downloaded.</p>
+      <a href="/" class="btn-primary inline-flex">Upload a new file</a>
+    </div>
+
+  </main>
+
+  <!-- Toast -->
+  <div id="toast" class="toast hidden" role="alert" aria-live="polite"></div>
+
+  <script src="/upload.js"></script>
+</body>
+</html>
+
